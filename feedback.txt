@@ -1,0 +1,20 @@
+Starting points for the simulation:
+
+1. It would be interesting to consider a complete bipartite graph in which each edge (u,v) is directed towards u w.p. 1/2 or towards v w.p 1/2. 
+In biological neural networks, edges (synapses) in both directions are rare, so you may want to choose the direction randomly.
+2. There are several random starting configurations to consider: 
+* all edge weights (of the random clique above) are set to 1, but the starting firing rate vector is chosen uniformly at random  in [0,1]^n
+* edge weights are chosen uniformly at random from [0,1], but the starting firing rate vector is all 1.
+* both edge weights and starting firing rates are randomly chosen in [0,1]
+* The bias values of the neurons might also be chosen randomly.
+
+Properties of the converged graph:
+
+Consider the graph obtained after running the simulation for sufficiently many rounds. Set different thresholds on the edge weights.
+For a given threshold value, say 0.99, eliminate all edges with weight below threshold and let G* be the resulting graph. We then ask:
+1. what's the max\ average degree?
+2. what's the diameter of the largest connected component (in the undirected graph)?
+3. what's the size of the largest connected component ?
+
+We are in particular interested in understanding how the parameters of the Hebbian learning effects the  emerged graph properties mentioned above.
+For example, what's the critical learning rate that guarantees a large connect component? (i.e., with at least n/100 nodes)
