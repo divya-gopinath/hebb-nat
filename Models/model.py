@@ -1,9 +1,10 @@
 import random
 
 UPDATE_EPSILON = 0.1
-INITIAL_FIRE_PROB = 0.4
+INITIAL_FIRE_PROB = 0.01
 WEIGHT_INIT = 0.2
-
+EDGE_PROB = 0.8
+random.seed(0)
 
 class Neuron:
     def __init__(self):
@@ -20,6 +21,11 @@ class Neuron:
         self.fire_prev = self.fire_now
         self.fire_now = self.fire_next
         self.fire_next = False
+
+    def normalize(self):
+        sum_weights = sum(syn.weight for syn in self.preds)
+        for syn in self.preds:
+            syn.weight /= sum_weights
 
 
 class Synapse:
@@ -44,15 +50,16 @@ class HebbianNet:
         for i in range(n):
             for j in range(i+1):
                 s, t = i, j
-                if random.random() > 0.5:
+                if random.random() < 0.5:
                     s, t = t, s
-                self.synapses.append(
-                    Synapse(
-                        self.neurons[s],
-                        self.neurons[t],
-                        WEIGHT_INIT
+                if random.random() < EDGE_PROB:
+                    self.synapses.append(
+                        Synapse(
+                            self.neurons[s],
+                            self.neurons[t],
+                            WEIGHT_INIT
+                        )
                     )
-                )
 
         for syn in self.synapses:
             syn.end.preds.append(syn)
@@ -65,6 +72,8 @@ class HebbianNet:
             neuron.update()
         for syn in self.synapses:
             syn.update_weight()
+        for neuron in self.neurons:
+            neuron.normalize()
 
 
 if __name__ == '__main__':
