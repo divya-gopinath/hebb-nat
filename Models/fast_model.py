@@ -2,7 +2,7 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 
-N_NEURONS = 100  # Number of nodes in the graph
+N_NEURONS = 15 # Number of nodes in the graph
 EPSILON = 0.01  # Epsilon value used for update
 DISP_THRESH = 0  # Does nothing
 SIM_ITERS = 120  # Number of iterations to run Hebb for
@@ -14,6 +14,8 @@ class FastNet:
     def __init__(self, n_neurons):
         self.n = n_neurons
         self.adj = np.random.random((self.n, self.n))
+        np.fill_diagonal(self.adj, 0)
+        self.adj = (self.adj.T / np.sum(self.adj, axis=1)).T
         self.firing = np.random.randint(0, 2, self.n)
         self.fired = np.random.randint(0, 2, self.n)
         self.gr = nx.Graph()
@@ -26,7 +28,7 @@ class FastNet:
         fire_probs = np.dot(self.adj, self.firing)
         self.firing = fire_probs > np.random.random(fire_probs.shape)
         self.adj *= 1 + (EPSILON * np.outer(self.firing, self.fired))
-        self.adj /= np.sum(self.adj, axis=1)
+        self.adj = (self.adj.T / np.sum(self.adj, axis=1)).T
 
     def display(self, axarr, ind):
         plt.sca(axarr.item(ind))
@@ -48,14 +50,14 @@ class FastNet:
         nx.draw_networkx_labels(self.gr, pos)
 
 
-if __name__ == '__main__':
+if True or __name__ == '__main__':
     net = FastNet(N_NEURONS)
     fig, axarr = plt.subplots(SIM_DISPLAY//Y_DIM, Y_DIM)
     for t in range(SIM_ITERS):
-        net.evolve()
         if t % (SIM_ITERS//SIM_DISPLAY) == 0:
             ind_disp = t // (SIM_ITERS//SIM_DISPLAY)
             x_ind = ind_disp % (SIM_DISPLAY//Y_DIM)
             y_ind = ind_disp // (SIM_DISPLAY//Y_DIM)
             net.display(axarr, (x_ind, y_ind))
+        net.evolve()
     plt.show()
