@@ -1,9 +1,15 @@
 import random
 
+import numpy as np
+import matplotlib.pyplot as pl
+
 UPDATE_EPSILON = 0.1
 INITIAL_FIRE_PROB = 0.01
 WEIGHT_INIT = 0.2
 EDGE_PROB = 0.8
+THRESHOLD = 0.1
+SAVE_HISTOGRAM = False
+
 random.seed(0)
 
 class Neuron:
@@ -33,11 +39,14 @@ class Synapse:
         self.start = s
         self.end = t
         self.weight = w
+        self.updated = False
 
     def update_weight(self):
         if self.start.fire_prev and self.end.fire_now:
             self.weight *= (1 + UPDATE_EPSILON)
-
+            self.updated = True
+        else:
+            self.updated = False
 
 class HebbianNet:
     def __init__(self, n):
@@ -75,14 +84,52 @@ class HebbianNet:
         for neuron in self.neurons:
             neuron.normalize()
 
+    def get_updated_synapses(self):
+        return set(i for i,synapse in enumerate(self.synapses) if synapse.updated)
+
+    def get_firing_neurons(self):
+        return set(i for i,neuron in enumerate(self.neurons) if neuron.fire_now)
+
+
+def is_same(i,old,new,tag):
+    try:
+        ratio = len(old & new) / len(old | new)
+        print ("{}: {} percent similar at {}th iteration".format(tag, ratio*100, i))
+        return True if ratio == 1 else False
+    except:
+        # zero division
+        return True
+
+def save_weight_distribution(weights):
+    fig = pl.hist(weights, normed=0, range=(.0042,.0225))
+    pl.title('weights')
+    pl.xlabel("weights")
+    pl.ylabel("freq")
+    pl.savefig("./img/w_{}.png".format(i))
 
 if __name__ == '__main__':
     net = HebbianNet(300)
-    for _ in range(100):
+
+    prev_weights = [syn.weight for syn in net.synapses] # not used
+    prev_fired = set()
+    prev_updated = set()
+
+    for i in range(3000):
+
         net.update()
-        print("Edges over threshold: {} of {}".format(
-            sum(syn.weight > 0.99 for syn in net.synapses),
-            len(net.synapses)
-        ))
 
+        cur_weights = [syn.weight for syn in net.synapses]
+        if SAVE_HISTOGRAM: save_weight_distribution(cur_weights)
 
+        cur_fired = net.get_firing_neurons()
+        cur_updated = net.get_updated_synapses()
+
+        if is_same(i,prev_fired,cur_fired, "fired neurons"): break
+        if is_same(i,prev_updated,cur_updated, "updated synapses"): break
+
+        prev_weights = cur_weights # not used
+        prev_fired = cur_fired
+        prev_updated = cur_updated
+
+        l = sum(syn.weight > THRESHOLD for syn in net.synapses)
+        if l > 0: print("Edges over threshold: {} of {} ({}th iteration)".format(l, len(net.synapses),i))
