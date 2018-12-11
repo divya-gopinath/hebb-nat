@@ -15,7 +15,7 @@ np.random.seed(1)
 
 def initialize_adj(n):
     adj = np.random.random((n, n))
-    adj[adj < 0] = 0
+    adj[adj < 0.95] = 0
     np.fill_diagonal(adj, 0)
     adj[1, 0] = 0  # 0 does not point to 1 directly
     adj[0, :] = 0  # Nothing points to 0
@@ -30,8 +30,8 @@ class FastNet:
         self.n = n_neurons  # Number of nodes in the graph
         # Adjacency matrix where self.adj[i,j] is the extra probability that i fires if j fired last time
         self.adj = initialize_adj(self.n)
-        self.firing = np.random.choice([0, 1], self.n, p=[0.9, 0.1])  # self.firing[i] is 1 if i fired this round
-        self.fired = np.random.choice([0, 1], self.n, p=[0.9, 0.1])  # self.fired[i] is 1 if i fired last round
+        self.firing = np.random.choice([0, 1], self.n, p=[0.95, 0.05])  # self.firing[i] is 1 if i fired this round
+        self.fired = np.random.choice([0, 1], self.n, p=[0.95, 0.05])  # self.fired[i] is 1 if i fired last round
         self.gr = nx.Graph()
 
     def force_fire(self, indices):
@@ -95,9 +95,9 @@ if False and __name__ == '__main__':
 
 if True or __name__ == '__main__':
     accuracies = []
-    for N in range(30,150,10):
+    for N in [102, 102, 102, 102, 102]:
         acc_loc=[]
-        for T in range(500):
+        for T in range(1,1000):
             net = FastNet(N)
             if DISPLAY:
                 fig, axarr = plt.subplots(SIM_DISPLAY//Y_DIM, Y_DIM)
